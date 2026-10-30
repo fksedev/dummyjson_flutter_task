@@ -28,6 +28,13 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Must live in defaultConfig (Flutter 3.35+ overwrites buildTypes abiFilters).
+        // Clear Flutter's default armeabi-v7a + arm64-v8a + x86_64 fat set.
+        ndk {
+            abiFilters.clear()
+            abiFilters += "arm64-v8a"
+        }
     }
 
     buildTypes {
@@ -35,6 +42,27 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+        }
+    }
+
+    packaging {
+        jniLibs {
+            // Smaller APK; Play still decompresses on install when needed.
+            useLegacyPackaging = false
+        }
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE*",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1",
+                "META-INF/*.kotlin_module",
+            )
         }
     }
 }
